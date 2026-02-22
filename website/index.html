@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Food Sales Prediction Demo</title>
+  <style>
+    body{font-family:system-ui,Arial;margin:24px;max-width:760px}
+    label{display:block;margin-top:10px}
+    input{width:100%;padding:10px;margin-top:6px}
+    button{margin-top:14px;padding:10px 14px;cursor:pointer}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    pre{background:#f6f6f6;padding:12px;overflow:auto}
+  </style>
+</head>
+<body>
+  <h2>Food Sales Prediction Demo</h2>
+  <p>Enter calendar + weather inputs to compare Random Forest, LightGBM, and XGBoost predictions.</p>
+
+  <div class="grid">
+    <div>
+      <label>Weekday (0=Mon … 6=Sun)
+        <input id="weekday" type="number" min="0" max="6" value="2" />
+      </label>
+      <label>Store ID
+        <input id="store_id" type="number" min="0" value="1" />
+      </label>
+      <label>School Holiday (0/1)
+        <input id="is_school_holiday" type="number" min="0" max="1" value="0" />
+      </label>
+      <label>State Holiday (0/1)
+        <input id="is_state_holiday" type="number" min="0" max="1" value="0" />
+      </label>
+      <label>Special Day (0/1)
+        <input id="is_special_day" type="number" min="0" max="1" value="0" />
+      </label>
+    </div>
+
+    <div>
+      <label>Temp Mean
+        <input id="temp_mean" type="number" step="0.1" value="12.3" />
+      </label>
+      <label>Temp Max
+        <input id="temp_max" type="number" step="0.1" value="16.0" />
+      </label>
+      <label>Temp Min
+        <input id="temp_min" type="number" step="0.1" value="8.2" />
+      </label>
+      <label>Sunshine
+        <input id="sunshine" type="number" step="0.1" value="5.0" />
+      </label>
+      <label>Precipitation
+        <input id="precipitation" type="number" step="0.1" value="0.2" />
+      </label>
+    </div>
+  </div>
+
+  <button onclick="runPredict()">Predict</button>
+  <p><b>Result</b></p>
+  <pre id="out">{}</pre>
+
+  <script>
+    // Replace with your deployed FastAPI URL, e.g. https://your-api.onrender.com
+    const API_BASE = "http://localhost:8000";
+
+    async function runPredict(){
+      const payload = {
+        weekday: Number(document.getElementById("weekday").value),
+        store_id: Number(document.getElementById("store_id").value),
+        is_school_holiday: Number(document.getElementById("is_school_holiday").value),
+        is_state_holiday: Number(document.getElementById("is_state_holiday").value),
+        is_special_day: Number(document.getElementById("is_special_day").value),
+        temp_mean: Number(document.getElementById("temp_mean").value),
+        temp_max: Number(document.getElementById("temp_max").value),
+        temp_min: Number(document.getElementById("temp_min").value),
+        sunshine: Number(document.getElementById("sunshine").value),
+        precipitation: Number(document.getElementById("precipitation").value),
+      };
+
+      const res = await fetch(`${API_BASE}/predict`, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      document.getElementById("out").textContent = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>
