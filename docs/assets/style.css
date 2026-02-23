@@ -1,0 +1,104 @@
+:root{
+    --bg:#ffffff;
+    --text:#0f172a;
+    --muted:#475569;
+    --card:#f8fafc;
+    --border:#e2e8f0;
+    --accent:#10b981; /* green/teal */
+    --accent2:#0ea5e9; /* blue for subtle gradients */
+    --shadow: 0 10px 30px rgba(2,6,23,.08);
+    --radius:16px;
+    --max: 1080px;
+  }
+  
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; color:var(--text); background:var(--bg)}
+  a{color:inherit;text-decoration:none}
+  p{line-height:1.65;color:var(--muted)}
+  .container{max-width:var(--max);margin:0 auto;padding:0 18px}
+  
+  .nav{
+    position:sticky; top:0; z-index:10;
+    backdrop-filter:saturate(180%) blur(10px);
+    background:rgba(255,255,255,.8);
+    border-bottom:1px solid var(--border);
+  }
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:12px 0;gap:10px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700}
+  .logo{
+    width:34px;height:34px;border-radius:10px;
+    background: linear-gradient(135deg,var(--accent),var(--accent2));
+    box-shadow: var(--shadow);
+  }
+  .links{display:flex;flex-wrap:wrap;gap:10px}
+  .links a{padding:8px 10px;border-radius:10px;color:var(--muted)}
+  .links a.active, .links a:hover{background:var(--card);color:var(--text)}
+  
+  .hero{
+    padding:62px 0 30px;
+    background:
+      radial-gradient(900px 400px at 10% -10%, rgba(16,185,129,.18), transparent 60%),
+      radial-gradient(700px 320px at 90% 0%, rgba(14,165,233,.16), transparent 55%);
+    border-bottom:1px solid var(--border);
+  }
+  .hero-grid{display:grid;grid-template-columns:1.3fr .7fr;gap:22px;align-items:center}
+  @media (max-width: 900px){.hero-grid{grid-template-columns:1fr}}
+  h1{margin:0 0 10px;font-size:44px;letter-spacing:-.02em;line-height:1.05}
+  @media (max-width: 520px){h1{font-size:34px}}
+  .kicker{display:inline-flex;gap:10px;align-items:center;padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#fff; color:var(--muted)}
+  .kicker b{color:var(--text)}
+  .cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:10px 14px;border-radius:12px;border:1px solid var(--border);
+    background:#fff; box-shadow: none; font-weight:600;
+  }
+  .btn.primary{border-color:transparent;background:var(--text);color:#fff}
+  .btn:hover{transform: translateY(-1px)}
+  .badge{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border-radius:var(--radius);background:#fff;border:1px solid var(--border);box-shadow: var(--shadow)}
+  .badge strong{display:block}
+  .badge small{color:var(--muted)}
+  
+  .section{padding:34px 0}
+  .section h2{margin:0 0 10px;font-size:28px;letter-spacing:-.01em}
+  .section .lead{max-width:70ch}
+  
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+  @media (max-width: 900px){.grid3{grid-template-columns:1fr}}
+  .card{
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+    padding:16px; box-shadow: none;
+  }
+  .card h3{margin:0 0 8px;font-size:18px}
+  .card p{margin:0}
+  
+  .pipeline{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+  @media (max-width: 900px){.pipeline{grid-template-columns:1fr}}
+  .pipe{
+    background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)
+  }
+  .pipe h3{margin:0 0 8px}
+  ul{margin:10px 0 0 18px;color:var(--muted)}
+  hr{border:none;border-top:1px solid var(--border);margin:18px 0}
+  
+  .footer{
+    padding:22px 0 30px;border-top:1px solid var(--border);color:var(--muted)
+  }
+  
+  .table{
+    width:100%; border-collapse:collapse; overflow:hidden; border-radius:12px; border:1px solid var(--border);
+    background:#fff
+  }
+  .table th, .table td{padding:10px 12px;border-bottom:1px solid var(--border);text-align:left}
+  .table th{background:var(--card);font-weight:700}
+  .table tr:last-child td{border-bottom:none}
+  
+  .form{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+  @media (max-width: 900px){.form{grid-template-columns:1fr}}
+  input, select{
+    width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--border);
+    background:#fff; outline:none;
+  }
+  pre{
+    background:#0b1220;color:#e2e8f0; padding:14px; border-radius:14px; overflow:auto; border:1px solid rgba(226,232,240,.15)
+  }

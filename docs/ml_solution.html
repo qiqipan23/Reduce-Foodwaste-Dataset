@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ML Solution · Food Sales Forecasting</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="index.html"><span class="logo"></span> Food Sales Forecasting</a>
+      <nav class="links">
+        <a href="index.html">Home</a>
+        <a href="impact.html">Impact</a>
+        <a class="active" href="ml-solution.html">ML Solution</a>
+        <a href="dataset.html">Dataset</a>
+        <a href="results.html">Results</a>
+        <a href="team.html">Team</a>
+        <a href="demo.html">Demo</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="section">
+    <div class="container">
+      <h2>Machine Learning Solution</h2>
+      <p class="lead">
+        Daily sales patterns are not strictly linear: weekday effects interact with holidays,
+        and weather can shift demand in subtle ways. Tree-based models are well-suited to structured
+        forecasting tasks like this.
+      </p>
+
+      <div class="grid3">
+        <div class="card">
+          <h3>Random Forest</h3>
+          <p>Strong baseline; robust to noise; provides useful feature importance signals.</p>
+        </div>
+        <div class="card">
+          <h3>LightGBM</h3>
+          <p>Fast gradient boosting; strong accuracy on tabular data; captures complex interactions efficiently.</p>
+        </div>
+        <div class="card">
+          <h3>XGBoost</h3>
+          <p>Highly competitive boosted trees; robust performance; strong benchmark with careful tuning.</p>
+        </div>
+      </div>
+
+      <hr />
+
+      <div class="pipe">
+        <h3>Features used</h3>
+        <ul>
+          <li>Date-derived signals (weekday patterns)</li>
+          <li>Store identifier</li>
+          <li>Holiday indicators (school/state/special days)</li>
+          <li>Weather variables (temperature, sunshine, precipitation)</li>
+        </ul>
+      </div>
+
+      <div class="pipe" style="margin-top:14px">
+        <h3>Evaluation</h3>
+        <p>
+          We compare models using standard forecasting error metrics to measure average accuracy and stability
+          across stores and time periods.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">Models: Random Forest · LightGBM · XGBoost</div>
+  </footer>
+</body>
+</html>
