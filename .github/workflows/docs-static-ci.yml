@@ -1,0 +1,86 @@
+name: Docs Static CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify-static-docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node (for HTML validation)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Validate HTML (docs/**/*.html)
+        shell: bash
+        run: |
+          npx --yes html-validate@8 "docs/**/*.html"
+
+      - name: Check local links & assets exist
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os, re, sys
+          from pathlib import Path
+
+          DOCS = Path("docs")
+          if not DOCS.exists():
+            print("docs/ not found")
+            sys.exit(1)
+
+          attr_re = re.compile(r'''(?:href|src)\s*=\s*["']([^"']+)["']''', re.IGNORECASE)
+
+          def is_external(u: str) -> bool:
+            return (
+              u.startswith("http://") or u.startswith("https://")
+              or u.startswith("mailto:") or u.startswith("tel:")
+              or u.startswith("data:") or u.startswith("//")
+            )
+
+          missing = []
+          html_files = list(DOCS.rglob("*.html"))
+
+          for f in html_files:
+            text = f.read_text(encoding="utf-8", errors="ignore")
+            for u in attr_re.findall(text):
+              u = u.strip()
+              if not u or is_external(u):
+                continue
+              if u.startswith("#"):
+                continue
+
+              u0 = u.split("#", 1)[0].split("?", 1)[0]
+              if not u0:
+                continue
+
+              if u0.startswith("/"):
+                u0 = u0.lstrip("/")
+
+                parts = u0.split("/", 1)
+                if len(parts) == 2 and parts[0] and (DOCS / parts[0]).exists() is False:
+                  candidate = DOCS / parts[1]
+                  if candidate.exists():
+                    continue
+
+                target = DOCS / u0
+              else:
+                target = (f.parent / u0)
+
+              if not target.exists():
+                missing.append((str(f), u))
+
+          if missing:
+            print("Missing local links/assets:")
+            for file, ref in missing:
+              print(f" - In {file}: {ref}")
+            sys.exit(1)
+
+          print(f"OK: checked {len(html_files)} HTML files, no missing local assets/links.")
+          PY
