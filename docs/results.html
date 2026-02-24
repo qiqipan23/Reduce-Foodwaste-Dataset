@@ -68,64 +68,188 @@
   </main>
 
     <!-- Replace your Visual Results section with this (no scatter; button toggles Total vs Single Store) -->
-    <section class="section">
-        <div class="container">
-        <h2>Visual Results</h2>
-        <p>Out-of-fold validation predictions of LightGBM compared with ground truth.</p>
-    
-        <!-- Buttons -->
-        <div class="cta" style="margin-top:12px; margin-bottom:12px;">
-            <button class="btn primary" id="btnTotal" type="button">Show Total (All Stores)</button>
-            <button class="btn" id="btnStore" type="button">Show Single Store</button>
-        </div>
-    
-        <!-- Graph 1: Total sales over time -->
-        <div class="card" id="plotTotal">
-            <h3>Total Sales Over Time (All Stores)</h3>
-            <img src="assets/plots/lightGBM_pred.png"
-                alt="Total sales over time: actual vs predicted"
-                style="width:100%; border-radius:12px; border:1px solid #e2e8f0;">
-            <p style="margin-top:10px; color:#475569;">
+    <!-- Visual Results (Model Tabs + Total/Single toggle) -->
+  <section class="section">
+    <div class="container">
+      <h2>Visual Results</h2>
+      <p>Out-of-fold validation predictions compared with ground truth.</p>
+
+      <!-- Model tabs -->
+      <div class="cta" style="margin-top:12px; margin-bottom:12px;">
+        <button class="btn primary" id="tabLGBM" type="button">LightGBM</button>
+        <button class="btn" id="tabRF" type="button">Random Forest</button>
+        <button class="btn" id="tabXGB" type="button">XGBoost</button>
+      </div>
+
+      <!-- Toggle: Total vs Store (applies to current model) -->
+      <div class="cta" style="margin-top:8px; margin-bottom:12px;">
+        <button class="btn primary" id="btnTotal" type="button">Show Total (All Stores)</button>
+        <button class="btn" id="btnStore" type="button">Show Single Store</button>
+      </div>
+
+      <!-- ===================== LightGBM ===================== -->
+      <div class="model-panel" id="panelLGBM">
+        <!-- Total -->
+        <div class="card view-total" id="lgbmTotal">
+          <h3>Total Sales Over Time (All Stores) · LightGBM</h3>
+          <img
+            src="assets/plots/lightGBM_pred.png"
+            alt="LightGBM total sales over time: actual vs predicted"
+            style="width:100%; border-radius:12px; border:1px solid #e2e8f0;"
+          >
+          <p style="margin-top:10px; color:#475569;">
             Actual vs predicted total daily sales aggregated across all stores (out-of-fold validation only).
-            </p>
+          </p>
         </div>
-    
-        <!-- Graph 2: Single store example -->
-        <div class="card" id="plotStore" style="display:none; margin-top:14px;">
-            <h3>Single Store Example</h3>
-            <img src="assets/plots/lightGBM_pred_store.png"
-                alt="Single store time series actual vs predicted"
-                style="width:100%; border-radius:12px; border:1px solid #e2e8f0;">
-            <p style="margin-top:10px; color:#475569;">
+
+        <!-- Store -->
+        <div class="card view-store" id="lgbmStore" style="display:none; margin-top:14px;">
+          <h3>Single Store Example · LightGBM</h3>
+          <img
+            src="assets/plots/lightGBM_pred_store.png"
+            alt="LightGBM single store time series actual vs predicted"
+            style="width:100%; border-radius:12px; border:1px solid #e2e8f0;"
+          >
+          <p style="margin-top:10px; color:#475569;">
             Actual vs predicted sales for one store over time (out-of-fold validation only).
-            </p>
+          </p>
         </div>
+      </div>
+
+      <!-- ===================== Random Forest (placeholder) ===================== -->
+      <div class="model-panel" id="panelRF" style="display:none;">
+        <!-- Total -->
+        <div class="card view-total" id="rfTotal">
+          <h3>Total Sales Over Time (All Stores) · Random Forest</h3>
+          <p style="color:#475569;">
+            (Placeholder) Add your Random Forest total plot image here later.
+          </p>
+          <!-- Example later:
+          <img src="assets/plots/rf_pred.png" alt="RF total actual vs predicted" style="width:100%; border-radius:12px; border:1px solid #e2e8f0;">
+          -->
         </div>
-    </section>
-    
-    <script>
-        const btnTotal = document.getElementById("btnTotal");
-        const btnStore = document.getElementById("btnStore");
-        const plotTotal = document.getElementById("plotTotal");
-        const plotStore = document.getElementById("plotStore");
-    
-        function showTotal() {
-        plotTotal.style.display = "block";
-        plotStore.style.display = "none";
-        btnTotal.classList.add("primary");
-        btnStore.classList.remove("primary");
-        }
-    
-        function showStore() {
-        plotTotal.style.display = "none";
-        plotStore.style.display = "block";
-        btnStore.classList.add("primary");
-        btnTotal.classList.remove("primary");
-        }
-    
-        btnTotal.addEventListener("click", showTotal);
-        btnStore.addEventListener("click", showStore);
-    </script>
+
+        <!-- Store -->
+        <div class="card view-store" id="rfStore" style="display:none; margin-top:14px;">
+          <h3>Single Store Example · Random Forest</h3>
+          <p style="color:#475569;">
+            (Placeholder) Add your Random Forest single-store plot image here later.
+          </p>
+          <!-- Example later:
+          <img src="assets/plots/rf_pred_store.png" alt="RF store actual vs predicted" style="width:100%; border-radius:12px; border:1px solid #e2e8f0;">
+          -->
+        </div>
+      </div>
+
+      <!-- ===================== XGBoost (placeholder) ===================== -->
+      <div class="model-panel" id="panelXGB" style="display:none;">
+        <!-- Total -->
+        <div class="card view-total" id="xgbTotal">
+          <h3>Total Sales Over Time (All Stores) · XGBoost</h3>
+          <p style="color:#475569;">
+            (Placeholder) Add your XGBoost total plot image here later.
+          </p>
+          <!-- Example later:
+          <img src="assets/plots/xgb_pred.png" alt="XGBoost total actual vs predicted" style="width:100%; border-radius:12px; border:1px solid #e2e8f0;">
+          -->
+        </div>
+
+        <!-- Store -->
+        <div class="card view-store" id="xgbStore" style="display:none; margin-top:14px;">
+          <h3>Single Store Example · XGBoost</h3>
+          <p style="color:#475569;">
+            (Placeholder) Add your XGBoost single-store plot image here later.
+          </p>
+          <!-- Example later:
+          <img src="assets/plots/xgb_pred_store.png" alt="XGBoost store actual vs predicted" style="width:100%; border-radius:12px; border:1px solid #e2e8f0;">
+          -->
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+    // Model tabs
+    const tabLGBM = document.getElementById("tabLGBM");
+    const tabRF = document.getElementById("tabRF");
+    const tabXGB = document.getElementById("tabXGB");
+
+    const panelLGBM = document.getElementById("panelLGBM");
+    const panelRF = document.getElementById("panelRF");
+    const panelXGB = document.getElementById("panelXGB");
+
+    // View toggle buttons
+    const btnTotal = document.getElementById("btnTotal");
+    const btnStore = document.getElementById("btnStore");
+
+    let currentPanel = panelLGBM; // default
+
+    function setActiveTab(activeBtn) {
+      [tabLGBM, tabRF, tabXGB].forEach(btn => btn.classList.remove("primary"));
+      activeBtn.classList.add("primary");
+    }
+
+    function showPanel(panel) {
+      [panelLGBM, panelRF, panelXGB].forEach(p => (p.style.display = "none"));
+      panel.style.display = "block";
+      currentPanel = panel;
+
+      // When switching model, keep current view mode (total/store)
+      applyViewMode();
+    }
+
+    function setActiveViewButtons(isTotal) {
+      btnTotal.classList.toggle("primary", isTotal);
+      btnStore.classList.toggle("primary", !isTotal);
+    }
+
+    function applyViewMode() {
+      const isTotal = btnTotal.classList.contains("primary");
+      const totals = currentPanel.querySelectorAll(".view-total");
+      const stores = currentPanel.querySelectorAll(".view-store");
+
+      totals.forEach(el => (el.style.display = isTotal ? "block" : "none"));
+      stores.forEach(el => (el.style.display = isTotal ? "none" : "block"));
+      setActiveViewButtons(isTotal);
+    }
+
+    function showTotal() {
+      btnTotal.classList.add("primary");
+      btnStore.classList.remove("primary");
+      applyViewMode();
+    }
+
+    function showStore() {
+      btnStore.classList.add("primary");
+      btnTotal.classList.remove("primary");
+      applyViewMode();
+    }
+
+    // Tab events
+    tabLGBM.addEventListener("click", () => {
+      setActiveTab(tabLGBM);
+      showPanel(panelLGBM);
+    });
+
+    tabRF.addEventListener("click", () => {
+      setActiveTab(tabRF);
+      showPanel(panelRF);
+    });
+
+    tabXGB.addEventListener("click", () => {
+      setActiveTab(tabXGB);
+      showPanel(panelXGB);
+    });
+
+    // View toggle events
+    btnTotal.addEventListener("click", showTotal);
+    btnStore.addEventListener("click", showStore);
+
+    // Init
+    showPanel(panelLGBM);
+    showTotal();
+  </script>
 
   <footer class="footer">
     <div class="container">Add charts (PNG) later in this page under /assets</div>
