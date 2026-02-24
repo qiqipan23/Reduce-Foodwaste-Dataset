@@ -110,62 +110,80 @@
       <section class="pipe">
         <h3>Quick distribution summary (tables)</h3>
         <p style="color:#475569;">
-          Below are lightweight summaries that help sanity-check the dataset before modeling.
-          (You can replace the placeholder numbers with real values after computing them.)
+          Summary statistics computed from <code>train.csv</code>.
         </p>
 
         <div class="grid3">
+
+          <!-- Numeric summary -->
           <div class="card">
-            <h4>Numeric summary (example)</h4>
+            <h4>Numeric summary</h4>
             <div style="overflow:auto;">
               <table class="table">
                 <thead>
-                  <tr><th>Feature</th><th>Mean</th><th>Std</th><th>Min</th><th>Max</th></tr>
+                  <tr>
+                    <th>Feature</th>
+                    <th>Mean</th>
+                    <th>Std</th>
+                    <th>Min</th>
+                    <th>Max</th>
+                  </tr>
                 </thead>
                 <tbody>
-                  <tr><td>sales</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
-                  <tr><td>unsold</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
-                  <tr><td>ordered</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
-                  <tr><td>temperature_mean</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+                  <tr><td>sales</td><td>0.1155</td><td>0.9977</td><td>-1.657</td><td>7.54</td></tr>
+                  <tr><td>unsold</td><td>0.0476</td><td>0.9945</td><td>-1.2898</td><td>7.4724</td></tr>
+                  <tr><td>ordered</td><td>0.0926</td><td>0.9675</td><td>-1.7158</td><td>7.8692</td></tr>
+                  <tr><td>temperature_mean</td><td>13.6417</td><td>7.8255</td><td>-5.6545</td><td>35.1727</td></tr>
                 </tbody>
               </table>
             </div>
-            <p style="color:#64748b; margin-top:8px;">Replace “—” with computed stats.</p>
           </div>
 
+          <!-- Holiday proportions -->
           <div class="card">
             <h4>Holiday proportions</h4>
             <div style="overflow:auto;">
               <table class="table">
                 <thead>
-                  <tr><th>Flag</th><th>0</th><th>1</th></tr>
+                  <tr>
+                    <th>Flag</th>
+                    <th>0</th>
+                    <th>1</th>
+                  </tr>
                 </thead>
                 <tbody>
-                  <tr><td>is_state_holiday</td><td>—%</td><td>—%</td></tr>
-                  <tr><td>is_school_holiday</td><td>—%</td><td>—%</td></tr>
-                  <tr><td>is_special_day</td><td>—%</td><td>—%</td></tr>
+                  <tr><td>is_state_holiday</td><td>100.00%</td><td>0.00%</td></tr>
+                  <tr><td>is_school_holiday</td><td>100.00%</td><td>0.00%</td></tr>
+                  <tr><td>is_special_day</td><td>100.00%</td><td>0.00%</td></tr>
                 </tbody>
               </table>
             </div>
-            <p style="color:#64748b; margin-top:8px;">Useful to check class imbalance.</p>
+            <p style="color:#64748b; margin-top:8px;">
+              Note: In the current dataset split, holiday flags are all zero.
+            </p>
           </div>
 
+          <!-- Missing overview -->
           <div class="card">
             <h4>Missing values overview</h4>
             <div style="overflow:auto;">
               <table class="table">
                 <thead>
-                  <tr><th>Column</th><th>Missing count</th><th>Missing %</th></tr>
+                  <tr>
+                    <th>Column</th>
+                    <th>Missing count</th>
+                    <th>Missing %</th>
+                  </tr>
                 </thead>
                 <tbody>
-                  <tr><td>temperature_mean</td><td>—</td><td>—%</td></tr>
-                  <tr><td>sunshine_sum</td><td>—</td><td>—%</td></tr>
-                  <tr><td>precipitation_sum</td><td>—</td><td>—%</td></tr>
+                  <tr><td>temperature_mean</td><td>0</td><td>0.00%</td></tr>
+                  <tr><td>sunshine_sum</td><td>0</td><td>0.00%</td></tr>
+                  <tr><td>precipitation_sum</td><td>0</td><td>0.00%</td></tr>
                 </tbody>
               </table>
             </div>
-            <p style="color:#64748b; margin-top:8px;">Spot sensors/data gaps early.</p>
           </div>
+
         </div>
       </section>
 

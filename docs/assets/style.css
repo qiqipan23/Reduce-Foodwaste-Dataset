@@ -88,8 +88,21 @@
   .section h2{margin:0 0 10px;font-size:28px;letter-spacing:-.01em}
   .section .lead{max-width:70ch}
   
-  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
-  @media (max-width:900px){.grid3{grid-template-columns:1fr}}
+  .grid3{
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0, 1fr));
+    gap:14px;
+    margin-top:16px;
+  }
+  .card{min-width:0}
+
+  @media (max-width: 1100px){
+    .grid3{grid-template-columns:repeat(2, minmax(0, 1fr))}
+  }
+
+  @media (max-width: 720px){
+    .grid3{grid-template-columns:1fr}
+  }
   
   .card{
     background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
