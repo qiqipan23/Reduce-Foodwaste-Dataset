@@ -46,12 +46,12 @@
 
       <table class="table">
         <thead>
-          <tr><th>Model</th><th>MAE</th><th>RMSE</th><th>MAPE</th></tr>
+          <tr><th>Model</th><th>MAE</th><th>RMSE</th></tr>
         </thead>
         <tbody>
-          <tr><td>Random Forest</td><td>—</td><td>—</td><td>—</td></tr>
-          <tr><td>LightGBM</td><td>—</td><td>—</td><td>—</td></tr>
-          <tr><td>XGBoost</td><td>—</td><td>—</td><td>—</td></tr>
+          <tr><td>Random Forest</td><td>—</td><td>—</td><td>
+          <tr><td>LightGBM</td><td>0.3445</td><td>0.4850</td><td>
+          <tr><td>XGBoost</td><td>—</td><td>—</td><td>
         </tbody>
       </table>
 
@@ -68,6 +68,66 @@
       </div>
     </div>
   </main>
+
+    <!-- Replace your Visual Results section with this (no scatter; button toggles Total vs Single Store) -->
+    <section class="section">
+        <div class="container">
+        <h2>Visual Results</h2>
+        <p>Out-of-fold validation predictions of LightGBM compared with ground truth.</p>
+    
+        <!-- Buttons -->
+        <div class="cta" style="margin-top:12px; margin-bottom:12px;">
+            <button class="btn primary" id="btnTotal" type="button">Show Total (All Stores)</button>
+            <button class="btn" id="btnStore" type="button">Show Single Store</button>
+        </div>
+    
+        <!-- Graph 1: Total sales over time -->
+        <div class="card" id="plotTotal">
+            <h3>Total Sales Over Time (All Stores)</h3>
+            <img src="assets/plots/lightGBM_pred.png"
+                alt="Total sales over time: actual vs predicted"
+                style="width:100%; border-radius:12px; border:1px solid #e2e8f0;">
+            <p style="margin-top:10px; color:#475569;">
+            Actual vs predicted total daily sales aggregated across all stores (out-of-fold validation only).
+            </p>
+        </div>
+    
+        <!-- Graph 2: Single store example -->
+        <div class="card" id="plotStore" style="display:none; margin-top:14px;">
+            <h3>Single Store Example</h3>
+            <img src="assets/plots/lightGBM_pred_store.png"
+                alt="Single store time series actual vs predicted"
+                style="width:100%; border-radius:12px; border:1px solid #e2e8f0;">
+            <p style="margin-top:10px; color:#475569;">
+            Actual vs predicted sales for one store over time (out-of-fold validation only).
+            </p>
+        </div>
+        </div>
+    </section>
+    
+    <script>
+        const btnTotal = document.getElementById("btnTotal");
+        const btnStore = document.getElementById("btnStore");
+        const plotTotal = document.getElementById("plotTotal");
+        const plotStore = document.getElementById("plotStore");
+    
+        function showTotal() {
+        plotTotal.style.display = "block";
+        plotStore.style.display = "none";
+        btnTotal.classList.add("primary");
+        btnStore.classList.remove("primary");
+        }
+    
+        function showStore() {
+        plotTotal.style.display = "none";
+        plotStore.style.display = "block";
+        btnStore.classList.add("primary");
+        btnTotal.classList.remove("primary");
+        }
+    
+        btnTotal.addEventListener("click", showTotal);
+        btnStore.addEventListener("click", showStore);
+    </script>
 
   <footer class="footer">
     <div class="container">Add charts (PNG) later in this page under /assets</div>

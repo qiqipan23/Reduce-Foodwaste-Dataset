@@ -45,6 +45,17 @@ def rmse(y_true, y_pred) -> float:
     return float(np.sqrt(mean_squared_error(y_true, y_pred)))
 
 
+def mape(y_true, y_pred, eps: float = 1e-8) -> float:
+    """
+    Mean Absolute Percentage Error in %.
+    Ignores y_true values that are 0 (or extremely close to 0) to avoid exploding percentages.
+    """
+    y_true = np.asarray(y_true, dtype=float)
+    y_pred = np.asarray(y_pred, dtype=float)
+    denom = np.where(np.abs(y_true) < eps, np.nan, np.abs(y_true))
+    return float(np.nanmean(np.abs((y_true - y_pred) / denom)) * 100.0)
+
+
 def main():
     # ----------------------------
     # 1) Load
@@ -59,6 +70,13 @@ def main():
     test = add_date_features(test)
 
     train["sales"] = pd.to_numeric(train["sales"], errors="coerce")
+
+    # Ensure holiday flags are numeric 0/1 (keeps them in numeric pipeline)
+    for c in ["is_state_holiday", "is_school_holiday", "is_special_day"]:
+        if c in train.columns:
+            train[c] = pd.to_numeric(train[c], errors="coerce").fillna(0).astype(int)
+        if c in test.columns:
+            test[c] = pd.to_numeric(test[c], errors="coerce").fillna(0).astype(int)
 
     # ----------------------------
     # 3) Combine train+test to build lags
@@ -117,8 +135,6 @@ def main():
     )
 
     # ---- LightGBM model ----
-    # Note: no early stopping here; learning curves will be length = n_estimators
-    # You can change n_estimators/learning_rate as you like.
     def make_model():
         return LGBMRegressor(
             objective="regression",
@@ -144,13 +160,17 @@ def main():
     X_ord = X.loc[order].reset_index(drop=True)
     y_ord = y.loc[order].reset_index(drop=True)
     dates_ord = train_feat.loc[order, "date"].reset_index(drop=True)
+    store_ord = train_feat.loc[order, "store"].reset_index(drop=True)
 
     tscv = TimeSeriesSplit(n_splits=5)
-    maes, rmses, r2s = [], [], []
+    maes, rmses, r2s, mapes = [], [], [], []
 
     # store learning curves for combined plot
     all_train_rmse = []
     all_valid_rmse = []
+
+    # OOF storage for plotting
+    oof_parts = []
 
     print("\n=== TimeSeriesSplit Evaluation (LightGBM + lags) ===")
     for fold, (tr_idx, va_idx) in enumerate(tscv.split(X_ord), start=1):
@@ -173,32 +193,53 @@ def main():
 
         pred = model.predict(X_va_p)
 
+        # OOF dataframe for this fold (for plots)
+        fold_df = pd.DataFrame({
+            "date": dates_ord.iloc[va_idx].values,
+            "store": store_ord.iloc[va_idx].values,
+            "y_true": y_va.values,
+            "y_pred": pred,
+            "fold": fold,
+        })
+        oof_parts.append(fold_df)
+
         mae_val = mean_absolute_error(y_va, pred)
         rmse_val = rmse(y_va, pred)
         r2_val = r2_score(y_va, pred)
+        mape_val = mape(y_va, pred)
 
         maes.append(mae_val)
         rmses.append(rmse_val)
         r2s.append(r2_val)
+        mapes.append(mape_val)
 
         # collect learning curves
         evals = model.evals_result_
-        train_rmse = np.array(evals["train"]["rmse"], dtype=float)
-        valid_rmse = np.array(evals["valid"]["rmse"], dtype=float)
-        all_train_rmse.append(train_rmse)
-        all_valid_rmse.append(valid_rmse)
+        train_rmse_curve = np.array(evals["train"]["rmse"], dtype=float)
+        valid_rmse_curve = np.array(evals["valid"]["rmse"], dtype=float)
+        all_train_rmse.append(train_rmse_curve)
+        all_valid_rmse.append(valid_rmse_curve)
 
         va_min = dates_ord.iloc[va_idx].min().date()
         va_max = dates_ord.iloc[va_idx].max().date()
         print(
-            f"Fold {fold}: MAE={mae_val:.4f}  RMSE={rmse_val:.4f}  R2={r2_val:.4f}  "
+            f"Fold {fold}: MAE={mae_val:.4f}  RMSE={rmse_val:.4f}  MAPE={mape_val:.2f}%  R2={r2_val:.4f}  "
             f"ValidRange={va_min}..{va_max}  (train={len(tr_idx)}, valid={len(va_idx)})"
         )
+
+    # Build OOF dataframe
+    oof = pd.concat(oof_parts, ignore_index=True)
+    oof["date"] = pd.to_datetime(oof["date"])
+    oof = oof.sort_values(["store", "date"]).reset_index(drop=True)
+
+    oof.to_csv("oof_predictions.csv", index=False)
+    print("Wrote oof_predictions.csv")
 
     print("\n=== Summary ===")
     print(f"MAE  mean={float(np.mean(maes)):.4f}  std={float(np.std(maes)):.4f}")
     print(f"RMSE mean={float(np.mean(rmses)):.4f}  std={float(np.std(rmses)):.4f}")
     print(f"R2   mean={float(np.mean(r2s)):.4f}  std={float(np.std(r2s)):.4f}")
+    print(f"MAPE mean={float(np.mean(mapes)):.2f}%  std={float(np.std(mapes)):.2f}%")
 
     # ----------------------------
     # 8) Combined learning curve plot (all folds in ONE figure)
@@ -237,6 +278,52 @@ def main():
     plt.close()
 
     print("Saved combined plot: lgbm_learning_curves_all_folds.png")
+
+    # ----------------------------
+    # 8b) OOF plots: actual vs predicted
+    # ----------------------------
+    # (A) time-series across ALL stores (can be noisy)
+    oof_time = oof.sort_values("date").reset_index(drop=True)
+    plt.figure(figsize=(12, 6))
+    plt.plot(oof_time["date"], oof_time["y_true"], label="Actual", alpha=0.8)
+    plt.plot(oof_time["date"], oof_time["y_pred"], label="Predicted", alpha=0.8)
+    plt.xlabel("Date")
+    plt.ylabel("Sales")
+    plt.title("Out-of-fold: Actual vs Predicted (validation only)")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig("oof_actual_vs_pred_time.png")
+    plt.close()
+    print("Saved plot: oof_actual_vs_pred_time.png")
+
+    # (B) one-store time-series (cleaner)
+    store_id = oof["store"].iloc[0]
+    one = oof[oof["store"] == store_id].sort_values("date")
+    plt.figure(figsize=(12, 6))
+    plt.plot(one["date"], one["y_true"], label="Actual")
+    plt.plot(one["date"], one["y_pred"], label="Predicted")
+    plt.title(f"OOF Actual vs Predicted — Store {store_id}")
+    plt.xlabel("Date")
+    plt.ylabel("Sales")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig("oof_actual_vs_pred_time_store.png")
+    plt.close()
+    print("Saved plot: oof_actual_vs_pred_time_store.png")
+
+    # (C) scatter plot predicted vs actual
+    plt.figure(figsize=(7, 7))
+    plt.scatter(oof["y_true"], oof["y_pred"], alpha=0.25)
+    mn = float(min(oof["y_true"].min(), oof["y_pred"].min()))
+    mx = float(max(oof["y_true"].max(), oof["y_pred"].max()))
+    plt.plot([mn, mx], [mn, mx])
+    plt.xlabel("Actual sales")
+    plt.ylabel("Predicted sales")
+    plt.title("Out-of-fold: Predicted vs Actual")
+    plt.tight_layout()
+    plt.savefig("oof_actual_vs_pred_scatter.png")
+    plt.close()
+    print("Saved plot: oof_actual_vs_pred_scatter.png")
 
     # ----------------------------
     # 9) Train on full train and predict test
