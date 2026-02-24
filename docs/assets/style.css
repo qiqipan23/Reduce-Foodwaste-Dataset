@@ -108,7 +108,7 @@
     position: relative;
     background:
       linear-gradient(90deg, rgba(255,255,255,.92) 0%, rgba(255,255,255,.75) 55%, rgba(255,255,255,.35) 100%),
-      url("foos_sales.png");
+      url("foos_sales.jpg");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
