@@ -16,90 +16,58 @@
         <a href="ml-solution.html">ML Solution</a>
         <a href="dataset.html">Dataset</a>
         <a href="results.html">Results</a>
+        <a href="team.html">Team</a>
+        <a href="demo.html">Demo</a>
       </nav>
     </div>
   </header>
 
   <main>
-    <!-- HERO -->
     <section class="hero hero-photo">
       <div class="container hero-grid">
         <div>
           <div class="kicker"><b>Goal:</b> reduce waste with better planning</div>
-
-          <h1>Food Sales Prediction<br/>to Reduce Waste</h1>
-
+          <h1>Food Sales Prediction to Reduce Waste</h1>
           <p class="lead">
-            We forecast daily store-level sales using machine learning, enabling smarter production planning,
-            fewer stockouts, and less overproduction.
+            We forecast daily sales using machine learning to support smarter production planning,
+            reduce overproduction, and improve product availability.
           </p>
-
           <div class="cta">
             <a class="btn primary" href="ml-solution.html">Explore the Models</a>
             <a class="btn" href="results.html">See the Results</a>
           </div>
-
-          <div class="mini-stats">
-            <div class="mini-card">
-              <div class="mini-num">3</div>
-              <div class="mini-label">Models compared</div>
-            </div>
-            <div class="mini-card">
-              <div class="mini-num">CV</div>
-              <div class="mini-label">Time-series validation</div>
-            </div>
-            <div class="mini-card">
-              <div class="mini-num">Lag</div>
-              <div class="mini-label">Sales history features</div>
-            </div>
-          </div>
         </div>
-
-        <div class="badge badge-large">
+        <div class="badge">
           <div>
-            <div class="badge-row">
-              <strong>Models</strong>
-              <small>Random Forest · LightGBM · XGBoost</small>
-            </div>
+            <strong>Models</strong>
+            <small>Random Forest · LightGBM · XGBoost</small>
             <hr />
-            <div class="badge-row">
-              <strong>Signals</strong>
-              <small>Weekday · Holidays · Weather · Lags</small>
-            </div>
-            <hr />
-            <div class="badge-row">
-              <strong>Dataset</strong>
-              <small>Reduce-Foodwaste Dataset</small>
-            </div>
-
-            <div class="badge-actions">
-              <a class="btn" href="dataset.html">See dataset features</a>
-            </div>
+            <strong>Dataset</strong>
+            <small>Reduce-Foodwaste Dataset</small>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- PROBLEM -->
     <section class="section">
       <div class="container">
         <h2>The Problem</h2>
         <p class="lead">
-          Food businesses face a daily trade-off: produce too much and waste increases, produce too little and
-          customers walk away. Demand shifts with weekday seasonality, holidays, and weather—making simple
-          averages unreliable.
+          Food businesses face a daily trade-off: produce too much and waste increases,
+          produce too little and customers walk away. Demand shifts with weekday seasonality,
+          holidays, and weather—making simple averages unreliable.
         </p>
 
         <div class="grid3">
-          <div class="card card-soft">
+          <div class="card">
             <h3>Overproduction becomes waste</h3>
             <p>Unsold products represent avoidable cost and unnecessary resource use.</p>
           </div>
-          <div class="card card-soft">
+          <div class="card">
             <h3>Underproduction loses sales</h3>
             <p>Stockouts reduce revenue and damage customer trust.</p>
           </div>
-          <div class="card card-soft">
+          <div class="card">
             <h3>Demand is complex</h3>
             <p>Calendar signals and weather interact in ways that basic methods miss.</p>
           </div>
@@ -107,21 +75,13 @@
       </div>
     </section>
 
-    <!-- APPROACH -->
     <section class="section">
       <div class="container">
-        <div class="section-head">
-          <div>
-            <h2>Our Approach</h2>
-            <p class="lead">
-              We build a forecasting pipeline that combines time-aware validation with sales lag features and
-              robust tree-based models, producing predictions that are practical for planning.
-            </p>
-          </div>
-          <div class="section-cta">
-            <a class="btn" href="results.html">View visual results</a>
-          </div>
-        </div>
+        <h2>Our Machine Learning Approach</h2>
+        <p class="lead">
+          We train three tree-based models on historical store-level sales with calendar and weather features.
+          We compare performance and interpretability to choose a forecasting approach that is accurate and practical.
+        </p>
 
         <div class="pipeline">
           <div class="pipe">
@@ -136,9 +96,9 @@
           <div class="pipe">
             <h3>Models</h3>
             <ul>
-              <li>Random Forest (baseline)</li>
-              <li>LightGBM (fast boosting)</li>
-              <li>XGBoost (strong benchmark)</li>
+              <li>Random Forest</li>
+              <li>LightGBM</li>
+              <li>XGBoost</li>
             </ul>
           </div>
           <div class="pipe">
@@ -151,23 +111,18 @@
           </div>
         </div>
 
-        <div class="note">
-          Dataset source:
-          <a class="btn" href="https://github.com/Green-AI-Hub-Mittelstand/Reduce-Foodwaste-Dataset" target="_blank" rel="noreferrer">
+        <p style="margin-top:16px">
+          Dataset source: <a class="btn" href="https://github.com/Green-AI-Hub-Mittelstand/Reduce-Foodwaste-Dataset" target="_blank" rel="noreferrer">
             Reduce-Foodwaste Dataset (GitHub)
           </a>
-        </div>
+        </p>
       </div>
     </section>
   </main>
 
   <footer class="footer">
-    <div class="container footer-inner">
-      <div>
-        <strong>Food Sales Forecasting</strong>
-        <div class="footer-muted">Random Forest · LightGBM · XGBoost</div>
-      </div>
-      <div class="footer-muted">Built for waste-aware planning</div>
+    <div class="container">
+      <div>Food Sales Prediction · Random Forest · LightGBM · XGBoost</div>
     </div>
   </footer>
 </body>
