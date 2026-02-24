@@ -38,16 +38,231 @@
 
       <hr />
 
-      <div class="pipe">
-        <h3>Data preparation</h3>
+
+      <section class="pipe">
+        <h3>Download & Structure</h3>
+
+        <div class="grid3">
+          <div class="card">
+            <h4>Source repository</h4>
+            <p style="color:#475569;">
+              The dataset is maintained by Green-AI-Hub-Mittelstand on GitHub.
+            </p>
+            <p>
+              <a class="btn" href="https://github.com/Green-AI-Hub-Mittelstand/Reduce-Foodwaste-Dataset" target="_blank" rel="noreferrer">
+                Open dataset repo
+              </a>
+            </p>
+          </div>
+
+          <div class="card">
+            <h4>How to download</h4>
+            <p style="color:#475569;">
+              You can clone the repository or download it as a ZIP file, then load the CSV locally for training and analysis.
+            </p>
+            <p style="color:#475569; margin-top:8px;">
+              Example: <code>git clone ...</code>
+            </p>
+          </div>
+
+          <div class="card">
+            <h4>Schema (columns)</h4>
+            <p style="color:#475569;">
+              Daily store-level sales with holidays and weather signals:
+            </p>
+            <p style="color:#475569; margin-top:8px;">
+              <code>date, store, is_state_holiday, is_school_holiday, is_special_day, temperature_max, temperature_min, temperature_mean, sunshine_sum, precipitation_sum, sales, unsold, ordered</code>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="pipe">
+        <h3>Column overview</h3>
+        <div class="card" style="overflow:auto;">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Column</th>
+                <th>Type</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>date</td><td>Date</td><td>Daily timestamp.</td></tr>
+              <tr><td>store</td><td>Category</td><td>Store identifier (store-level series).</td></tr>
+              <tr><td>is_state_holiday</td><td>Binary</td><td>1 if state holiday, else 0.</td></tr>
+              <tr><td>is_school_holiday</td><td>Binary</td><td>1 if school holiday, else 0.</td></tr>
+              <tr><td>is_special_day</td><td>Binary</td><td>1 if special day/event, else 0.</td></tr>
+              <tr><td>temperature_max</td><td>Numeric</td><td>Daily max temperature.</td></tr>
+              <tr><td>temperature_min</td><td>Numeric</td><td>Daily min temperature.</td></tr>
+              <tr><td>temperature_mean</td><td>Numeric</td><td>Daily mean temperature.</td></tr>
+              <tr><td>sunshine_sum</td><td>Numeric</td><td>Total sunshine duration (daily sum).</td></tr>
+              <tr><td>precipitation_sum</td><td>Numeric</td><td>Total precipitation (daily sum).</td></tr>
+              <tr><td>sales</td><td>Numeric</td><td>Observed sales (target).</td></tr>
+              <tr><td>unsold</td><td>Numeric</td><td>Unsold amount (waste proxy).</td></tr>
+              <tr><td>ordered</td><td>Numeric</td><td>Ordered amount (supply/planning).</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="pipe">
+        <h3>Quick distribution summary (tables)</h3>
+        <p style="color:#475569;">
+          Below are lightweight summaries that help sanity-check the dataset before modeling.
+          (You can replace the placeholder numbers with real values after computing them.)
+        </p>
+
+        <div class="grid3">
+          <div class="card">
+            <h4>Numeric summary (example)</h4>
+            <div style="overflow:auto;">
+              <table class="table">
+                <thead>
+                  <tr><th>Feature</th><th>Mean</th><th>Std</th><th>Min</th><th>Max</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>sales</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+                  <tr><td>unsold</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+                  <tr><td>ordered</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+                  <tr><td>temperature_mean</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p style="color:#64748b; margin-top:8px;">Replace “—” with computed stats.</p>
+          </div>
+
+          <div class="card">
+            <h4>Holiday proportions</h4>
+            <div style="overflow:auto;">
+              <table class="table">
+                <thead>
+                  <tr><th>Flag</th><th>0</th><th>1</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>is_state_holiday</td><td>—%</td><td>—%</td></tr>
+                  <tr><td>is_school_holiday</td><td>—%</td><td>—%</td></tr>
+                  <tr><td>is_special_day</td><td>—%</td><td>—%</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p style="color:#64748b; margin-top:8px;">Useful to check class imbalance.</p>
+          </div>
+
+          <div class="card">
+            <h4>Missing values overview</h4>
+            <div style="overflow:auto;">
+              <table class="table">
+                <thead>
+                  <tr><th>Column</th><th>Missing count</th><th>Missing %</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>temperature_mean</td><td>—</td><td>—%</td></tr>
+                  <tr><td>sunshine_sum</td><td>—</td><td>—%</td></tr>
+                  <tr><td>precipitation_sum</td><td>—</td><td>—%</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p style="color:#64748b; margin-top:8px;">Spot sensors/data gaps early.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="pipe">
+        <h3>Distribution visualizations</h3>
+        <p style="color:#475569;">
+          Export plots as PNG to <code>docs/assets/plots/</code> and the page will display them.
+          Recommended: histogram/boxplot for numeric features, and time series for sales.
+        </p>
+
+        <div class="grid3">
+          <div class="card">
+            <h4>Sales distribution</h4>
+            <img
+              src="assets/plots/dist_sales.png"
+              alt="Distribution of sales"
+              style="width:100%; border-radius:12px; border:1px solid #e2e8f0;"
+            >
+            <p style="margin-top:10px; color:#475569;">
+              Histogram / KDE to inspect skewness and outliers.
+            </p>
+          </div>
+
+          <div class="card">
+            <h4>Waste (unsold) distribution</h4>
+            <img
+              src="assets/plots/dist_unsold.png"
+              alt="Distribution of unsold"
+              style="width:100%; border-radius:12px; border:1px solid #e2e8f0;"
+            >
+            <p style="margin-top:10px; color:#475569;">
+              Often heavy-tailed; consider log transforms.
+            </p>
+          </div>
+
+          <div class="card">
+            <h4>Weather feature distributions</h4>
+            <img
+              src="assets/plots/dist_weather.png"
+              alt="Distributions of temperature and weather variables"
+              style="width:100%; border-radius:12px; border:1px solid #e2e8f0;"
+            >
+            <p style="margin-top:10px; color:#475569;">
+              Temperature & precipitation summaries.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid3" style="margin-top:14px;">
+          <div class="card">
+            <h4>Sales over time</h4>
+            <img
+              src="assets/plots/timeseries_sales_total.png"
+              alt="Total sales over time"
+              style="width:100%; border-radius:12px; border:1px solid #e2e8f0;"
+            >
+            <p style="margin-top:10px; color:#475569;">
+              Trend + seasonality checks (weekly/yearly patterns).
+            </p>
+          </div>
+
+          <div class="card">
+            <h4>Sales by weekday</h4>
+            <img
+              src="assets/plots/sales_by_weekday.png"
+              alt="Sales by weekday"
+              style="width:100%; border-radius:12px; border:1px solid #e2e8f0;"
+            >
+            <p style="margin-top:10px; color:#475569;">
+              Boxplot or bar chart by weekday.
+            </p>
+          </div>
+
+          <div class="card">
+            <h4>Holiday impact</h4>
+            <img
+              src="assets/plots/sales_holiday_effect.png"
+              alt="Sales holiday effect"
+              style="width:100%; border-radius:12px; border:1px solid #e2e8f0;"
+            >
+            <p style="margin-top:10px; color:#475569;">
+              Compare distributions for holiday vs non-holiday days.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="pipe">
+        <h3>Data preparation (workflow)</h3>
         <ul>
           <li>Clean and validate daily records</li>
           <li>Handle missing values consistently</li>
-          <li>Create time-based features from dates</li>
+          <li>Create time-based features from dates (weekday, month, lag features)</li>
           <li>Split chronologically to simulate real forecasting</li>
           <li>Train and evaluate across stores and time periods</li>
         </ul>
-      </div>
+      </section>
     </div>
   </main>
 
