@@ -55,46 +55,6 @@
       </div>
     </section>
 
-    <!-- HOW IT WORKS -->
-    <section class="section">
-      <div class="container">
-        <h2>How it works</h2>
-        <p class="lead">
-          We follow a simple process: collect useful signals, learn patterns from history, and generate a forecast.
-        </p>
-
-        <div class="pipeline">
-          <div class="pipe">
-            <h3>1) Collect signals</h3>
-            <ul>
-              <li>Weekday and season (e.g., weekends vs weekdays)</li>
-              <li>Holidays and special days</li>
-              <li>Weather (temperature, sunshine, precipitation)</li>
-              <li>Recent demand (sales last week / last 14 days)</li>
-            </ul>
-          </div>
-
-          <div class="pipe">
-            <h3>2) Learn patterns</h3>
-            <p>
-              The model learns which situations usually lead to higher or lower sales by looking at many
-              past examples. For instance, it can learn that weekends are typically busier, or that certain
-              weather conditions change buying behavior.
-            </p>
-          </div>
-
-          <div class="pipe">
-            <h3>3) Output a forecast</h3>
-            <ul>
-              <li>Predicted daily sales (per store, per day)</li>
-              <li>Comparison across models for reliability</li>
-              <li>Forecasts that support waste-aware planning</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- MODELS (NON-TECHNICAL) -->
     <section class="section">
       <div class="container">
@@ -105,19 +65,28 @@
         </p>
 
         <div class="grid3">
-          <div class="card">
+          <div class="card model-card">
+            <img src="assets/random_forest.png"
+                alt="Random Forest model diagram"
+                class="model-img">
             <h3>Random Forest</h3>
             <p><b>Best for:</b> a stable baseline that performs well without heavy tuning.</p>
             <p style="margin-top:8px;"><b>Trade-off:</b> may miss some subtle patterns in demand.</p>
           </div>
 
-          <div class="card">
+          <div class="card model-card">
+            <img src="assets/models/lightgbm.png"
+                alt="LightGBM model diagram"
+                class="model-img">
             <h3>LightGBM</h3>
             <p><b>Best for:</b> strong accuracy on business-style tables (sales, weather, holidays).</p>
             <p style="margin-top:8px;"><b>Trade-off:</b> needs careful settings to avoid overfitting.</p>
           </div>
 
-          <div class="card">
+          <div class="card model-card">
+            <img src="assets/models/xgboost.png"
+                alt="XGBoost model diagram"
+                class="model-img">
             <h3>XGBoost</h3>
             <p><b>Best for:</b> a strong benchmark model that often performs very well.</p>
             <p style="margin-top:8px;"><b>Trade-off:</b> can be slower and benefits from tuning.</p>
