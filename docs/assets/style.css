@@ -171,11 +171,13 @@
   
   .model-img{
     width: 100%;
-    height: 160px;          /* consistent card height */
-    object-fit: cover;      /* crops nicely if image is wide */
+    height: auto;          /* let it keep its full height */
+    display: block;
+    object-fit: contain;   /* no cropping */
     border-radius: 12px;
     border: 1px solid var(--border);
     background: #fff;
+    padding: 10px;         /* adds breathing space for diagrams */
     margin-bottom: 12px;
   }
   
