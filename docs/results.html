@@ -47,7 +47,7 @@
           <tr><th>Model</th><th>MAE</th><th>RMSE</th></tr>
         </thead>
         <tbody>
-          <tr><td>Random Forest</td><td>—</td><td>—</td></tr>
+          <tr><td>Random Forest</td><td>0.2420</td><td>0.3825</td></tr>
           <tr><td>LightGBM</td><td>0.3445</td><td>0.4850</td></tr>
           <tr><td>XGBoost</td><td>0.2946</td><td>0.4280</td></tr>
         </tbody>
@@ -116,28 +116,32 @@
         </div>
       </div>
 
-      <!-- ===================== Random Forest (placeholder) ===================== -->
+      <!-- ===================== Random Forest ===================== -->
       <div class="model-panel" id="panelRF" style="display:none;">
         <!-- Total -->
         <div class="card view-total" id="rfTotal">
           <h3>Total Sales Over Time (All Stores) · Random Forest</h3>
-          <p style="color:#475569;">
-            (Placeholder) Add your Random Forest total plot image here later.
+          <img
+            src="assets/plots/RF_pred.png"
+            alt="Random Forest total sales over time: actual vs predicted"
+            style="width:100%; border-radius:12px; border:1px solid #e2e8f0;"
+          >
+          <p style="margin-top:10px; color:#475569;">
+            Actual vs predicted total daily sales aggregated across all stores (out-of-fold validation only).
           </p>
-          <!-- Example later:
-          <img src="assets/plots/rf_pred.png" alt="RF total actual vs predicted" style="width:100%; border-radius:12px; border:1px solid #e2e8f0;">
-          -->
         </div>
 
         <!-- Store -->
         <div class="card view-store" id="rfStore" style="display:none; margin-top:14px;">
           <h3>Single Store Example · Random Forest</h3>
-          <p style="color:#475569;">
-            (Placeholder) Add your Random Forest single-store plot image here later.
+          <img
+            src="assets/plots/RF_pred_store.png"
+            alt="Random Forest single store time series actual vs predicted"
+            style="width:100%; border-radius:12px; border:1px solid #e2e8f0;"
+          >
+          <p style="margin-top:10px; color:#475569;">
+            Actual vs predicted sales for one store over time (out-of-fold validation only).
           </p>
-          <!-- Example later:
-          <img src="assets/plots/rf_pred_store.png" alt="RF store actual vs predicted" style="width:100%; border-radius:12px; border:1px solid #e2e8f0;">
-          -->
         </div>
       </div>
 
@@ -149,7 +153,7 @@
           <img
             src="assets/plots/XGBoost_pred.png"
             alt="XGBoost total sales over time: actual vs predicted"
-            style="width:100%; border-radius:12px; border:1px solid #e2e8f0;"
+            style="width:70%; border-radius:12px; border:1px solid #e2e8f0;"
           >
           <p style="margin-top:10px; color:#475569;">
             Actual vs predicted total daily sales aggregated across all stores (out-of-fold validation only).
@@ -162,7 +166,7 @@
           <img
             src="assets/plots/XGBoost_pred_store.png"
             alt="XGBoost single store time series actual vs predicted"
-            style="width:100%; border-radius:12px; border:1px solid #e2e8f0;"
+            style="width:70%; border-radius:12px; border:1px solid #e2e8f0;"
           >
           <p style="margin-top:10px; color:#475569;">
             Actual vs predicted sales for one store over time (out-of-fold validation only).
