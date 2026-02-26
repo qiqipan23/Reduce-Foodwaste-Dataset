@@ -49,7 +49,7 @@
         <tbody>
           <tr><td>Random Forest</td><td>—</td><td>—</td></tr>
           <tr><td>LightGBM</td><td>0.3445</td><td>0.4850</td></tr>
-          <tr><td>XGBoost</td><td>—</td><td>—</td></tr>
+          <tr><td>XGBoost</td><td>0.2946</td><td>0.4280</td></tr>
         </tbody>
       </table>
 
@@ -141,28 +141,32 @@
         </div>
       </div>
 
-      <!-- ===================== XGBoost (placeholder) ===================== -->
+      <!-- ===================== XGBoost ===================== -->
       <div class="model-panel" id="panelXGB" style="display:none;">
         <!-- Total -->
         <div class="card view-total" id="xgbTotal">
           <h3>Total Sales Over Time (All Stores) · XGBoost</h3>
-          <p style="color:#475569;">
-            (Placeholder) Add your XGBoost total plot image here later.
+          <img
+            src="assets/plots/XGBoost_pred.png"
+            alt="XGBoost total sales over time: actual vs predicted"
+            style="width:100%; border-radius:12px; border:1px solid #e2e8f0;"
+          >
+          <p style="margin-top:10px; color:#475569;">
+            Actual vs predicted total daily sales aggregated across all stores (out-of-fold validation only).
           </p>
-          <!-- Example later:
-          <img src="assets/plots/xgb_pred.png" alt="XGBoost total actual vs predicted" style="width:100%; border-radius:12px; border:1px solid #e2e8f0;">
-          -->
         </div>
 
         <!-- Store -->
         <div class="card view-store" id="xgbStore" style="display:none; margin-top:14px;">
           <h3>Single Store Example · XGBoost</h3>
-          <p style="color:#475569;">
-            (Placeholder) Add your XGBoost single-store plot image here later.
+          <img
+            src="assets/plots/XGBoost_pred_store.png"
+            alt="XGBoost single store time series actual vs predicted"
+            style="width:100%; border-radius:12px; border:1px solid #e2e8f0;"
+          >
+          <p style="margin-top:10px; color:#475569;">
+            Actual vs predicted sales for one store over time (out-of-fold validation only).
           </p>
-          <!-- Example later:
-          <img src="assets/plots/xgb_pred_store.png" alt="XGBoost store actual vs predicted" style="width:100%; border-radius:12px; border:1px solid #e2e8f0;">
-          -->
         </div>
       </div>
 

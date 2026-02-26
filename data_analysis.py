@@ -27,6 +27,10 @@ import matplotlib.pyplot as plt
 CSV_PATH = Path("train.csv")
 OUT_DIR = Path("docs/assets/plots")
 
+# Plot colours (Actual vs Predicted / time series) — shared with XGBoost script
+COLOR_ACTUAL = "#1f77b4"
+COLOR_PREDICTED = "#ff7f0e"
+
 DATE_COL = "date"
 STORE_COL = "store"
 
@@ -166,7 +170,7 @@ def main() -> int:
             plt.title("Total Sales Over Time")
             plt.axis("off")
         else:
-            plt.plot(ts.index, ts.values)
+            plt.plot(ts.index, ts.values, color=COLOR_ACTUAL)
             plt.title("Total Sales Over Time (All Stores)")
             plt.xlabel("date")
             plt.ylabel("total sales")
