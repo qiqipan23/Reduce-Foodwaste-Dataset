@@ -164,7 +164,32 @@
     background-position:center;
     background-repeat:no-repeat;
   }
+
+  .model-card{
+    overflow: hidden;
+  }
   
+  .model-img{
+    width: 100%;
+    height: auto;          /* let it keep its full height */
+    display: block;
+    object-fit: contain;   /* no cropping */
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: #fff;
+    padding: 10px;         /* adds breathing space for diagrams */
+    margin-bottom: 12px;
+  }
+  
+/* small icon image */
+.icon{
+    width: 32px;
+    height: 32px;
+    display: block;
+    margin: 0 0 10px 0;
+    object-fit: contain;
+  }
+
   @media (prefers-reduced-motion: reduce){
     *{transition:none !important;animation:none !important}
   }

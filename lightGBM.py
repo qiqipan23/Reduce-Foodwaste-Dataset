@@ -23,7 +23,26 @@ def add_date_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def normalize_holiday_flags(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    In this dataset, holiday columns are strings like 'normal_day'.
+    Convert them to binary: 1 if NOT 'normal_day', else 0.
+    """
+    df = df.copy()
+    for c in ["is_state_holiday", "is_school_holiday", "is_special_day"]:
+        if c in df.columns:
+            # Keep robust to case/spacing
+            s = df[c].astype(str).str.strip().str.lower()
+            df[c] = (s != "normal_day").astype(int)
+    return df
+
+
 def add_sales_lag_features(df: pd.DataFrame, group_col="store") -> pd.DataFrame:
+    """
+    Adds lag + rolling stats per store. Assumes 'sales' exists but can contain NaN for test rows.
+    Uses shift(1) before rolling to avoid peeking at the current day.
+    IMPORTANT: This function sorts rows; so do NOT split train/test by iloc after calling it.
+    """
     df = df.copy()
     df = df.sort_values([group_col, "date"]).reset_index(drop=True)
 
@@ -45,17 +64,6 @@ def rmse(y_true, y_pred) -> float:
     return float(np.sqrt(mean_squared_error(y_true, y_pred)))
 
 
-def mape(y_true, y_pred, eps: float = 1e-8) -> float:
-    """
-    Mean Absolute Percentage Error in %.
-    Ignores y_true values that are 0 (or extremely close to 0) to avoid exploding percentages.
-    """
-    y_true = np.asarray(y_true, dtype=float)
-    y_pred = np.asarray(y_pred, dtype=float)
-    denom = np.where(np.abs(y_true) < eps, np.nan, np.abs(y_true))
-    return float(np.nanmean(np.abs((y_true - y_pred) / denom)) * 100.0)
-
-
 def main():
     # ----------------------------
     # 1) Load
@@ -64,37 +72,39 @@ def main():
     test = pd.read_csv("test.csv")
 
     # ----------------------------
-    # 2) Date features
+    # 2) Feature prep (date + holiday flags)
     # ----------------------------
     train = add_date_features(train)
     test = add_date_features(test)
 
-    train["sales"] = pd.to_numeric(train["sales"], errors="coerce")
+    train = normalize_holiday_flags(train)
+    test = normalize_holiday_flags(test)
 
-    # Ensure holiday flags are numeric 0/1 (keeps them in numeric pipeline)
-    for c in ["is_state_holiday", "is_school_holiday", "is_special_day"]:
-        if c in train.columns:
-            train[c] = pd.to_numeric(train[c], errors="coerce").fillna(0).astype(int)
-        if c in test.columns:
-            test[c] = pd.to_numeric(test[c], errors="coerce").fillna(0).astype(int)
+    train["sales"] = pd.to_numeric(train["sales"], errors="coerce")
 
     # ----------------------------
     # 3) Combine train+test to build lags
+    #    CRITICAL: keep a flag so we can split AFTER sorting
     # ----------------------------
+    train_for_lags = train.copy()
+    train_for_lags["__is_train"] = 1
+
     test_for_lags = test.copy()
     test_for_lags["sales"] = np.nan
+    test_for_lags["__is_train"] = 0
 
-    combined = pd.concat([train, test_for_lags], ignore_index=True, sort=False)
+    combined = pd.concat([train_for_lags, test_for_lags], ignore_index=True, sort=False)
 
-    # Drop columns not reliable/available
-    for c in ["unsold", "ordered", "row_id"]:
+    # Drop columns not reliable/available (KEEP row_id for test scoring)
+    for c in ["unsold", "ordered"]:
         if c in combined.columns:
             combined = combined.drop(columns=[c])
 
     combined = add_sales_lag_features(combined, group_col="store")
 
-    train_feat = combined.iloc[: len(train)].copy()
-    test_feat = combined.iloc[len(train):].copy()
+    # Split using the flag (NOT by iloc)
+    train_feat = combined[combined["__is_train"] == 1].copy()
+    test_feat = combined[combined["__is_train"] == 0].copy()
 
     # ----------------------------
     # 4) Drop train rows with missing target
@@ -109,11 +119,24 @@ def main():
     # 5) Build X/y
     # ----------------------------
     y = train_feat["sales"].astype(float)
-    X = train_feat.drop(columns=["sales", "date"])
-    X_test = test_feat.drop(columns=["sales", "date"])
+
+    # row_id is only for test scoring; __is_train is internal; date removed from features
+    drop_train = ["sales", "date", "__is_train"]
+    drop_test = ["sales", "date", "__is_train"]
+
+    if "row_id" in train_feat.columns:
+        drop_train.append("row_id")
+    if "row_id" in test_feat.columns:
+        test_row_id = test_feat["row_id"].copy()
+        drop_test.append("row_id")
+    else:
+        test_row_id = None
+
+    X = train_feat.drop(columns=drop_train)
+    X_test = test_feat.drop(columns=drop_test)
 
     # ----------------------------
-    # 6) Auto-detect numeric vs categorical
+    # 6) Preprocess: numeric + categorical
     # ----------------------------
     numeric_cols = X.select_dtypes(include=["number", "bool"]).columns.tolist()
     categorical_cols = [c for c in X.columns if c not in numeric_cols]
@@ -134,7 +157,6 @@ def main():
         remainder="drop",
     )
 
-    # ---- LightGBM model ----
     def make_model():
         return LGBMRegressor(
             objective="regression",
@@ -156,6 +178,8 @@ def main():
     # ----------------------------
     # 7) Time-series CV (walk-forward)
     # ----------------------------
+    # NOTE: train_feat is already sorted by store/date because add_sales_lag_features sorted it,
+    # but for TimeSeriesSplit we want global time order:
     order = train_feat.sort_values("date").index.to_numpy()
     X_ord = X.loc[order].reset_index(drop=True)
     y_ord = y.loc[order].reset_index(drop=True)
@@ -163,27 +187,20 @@ def main():
     store_ord = train_feat.loc[order, "store"].reset_index(drop=True)
 
     tscv = TimeSeriesSplit(n_splits=5)
-    maes, rmses, r2s, mapes = [], [], [], []
+    maes, rmses, r2s = [], [], []
 
-    # store learning curves for combined plot
-    all_train_rmse = []
-    all_valid_rmse = []
-
-    # OOF storage for plotting
     oof_parts = []
+    all_train_rmse, all_valid_rmse = [], []
 
     print("\n=== TimeSeriesSplit Evaluation (LightGBM + lags) ===")
     for fold, (tr_idx, va_idx) in enumerate(tscv.split(X_ord), start=1):
         X_tr, X_va = X_ord.iloc[tr_idx], X_ord.iloc[va_idx]
         y_tr, y_va = y_ord.iloc[tr_idx], y_ord.iloc[va_idx]
 
-        # Fit preprocessing on train fold only
         X_tr_p = preprocess.fit_transform(X_tr, y_tr)
         X_va_p = preprocess.transform(X_va)
 
         model = make_model()
-
-        # Track RMSE per boosting round on train + valid
         model.fit(
             X_tr_p, y_tr,
             eval_set=[(X_tr_p, y_tr), (X_va_p, y_va)],
@@ -193,140 +210,46 @@ def main():
 
         pred = model.predict(X_va_p)
 
-        # OOF dataframe for this fold (for plots)
-        fold_df = pd.DataFrame({
+        oof_parts.append(pd.DataFrame({
             "date": dates_ord.iloc[va_idx].values,
             "store": store_ord.iloc[va_idx].values,
             "y_true": y_va.values,
             "y_pred": pred,
             "fold": fold,
-        })
-        oof_parts.append(fold_df)
+        }))
 
         mae_val = mean_absolute_error(y_va, pred)
         rmse_val = rmse(y_va, pred)
         r2_val = r2_score(y_va, pred)
-        mape_val = mape(y_va, pred)
 
         maes.append(mae_val)
         rmses.append(rmse_val)
         r2s.append(r2_val)
-        mapes.append(mape_val)
 
-        # collect learning curves
         evals = model.evals_result_
-        train_rmse_curve = np.array(evals["train"]["rmse"], dtype=float)
-        valid_rmse_curve = np.array(evals["valid"]["rmse"], dtype=float)
-        all_train_rmse.append(train_rmse_curve)
-        all_valid_rmse.append(valid_rmse_curve)
+        all_train_rmse.append(np.array(evals["train"]["rmse"], dtype=float))
+        all_valid_rmse.append(np.array(evals["valid"]["rmse"], dtype=float))
 
         va_min = dates_ord.iloc[va_idx].min().date()
         va_max = dates_ord.iloc[va_idx].max().date()
         print(
-            f"Fold {fold}: MAE={mae_val:.4f}  RMSE={rmse_val:.4f}  MAPE={mape_val:.2f}%  R2={r2_val:.4f}  "
+            f"Fold {fold}: MAE={mae_val:.4f}  RMSE={rmse_val:.4f}  R2={r2_val:.4f}  "
             f"ValidRange={va_min}..{va_max}  (train={len(tr_idx)}, valid={len(va_idx)})"
         )
 
-    # Build OOF dataframe
     oof = pd.concat(oof_parts, ignore_index=True)
     oof["date"] = pd.to_datetime(oof["date"])
     oof = oof.sort_values(["store", "date"]).reset_index(drop=True)
-
     oof.to_csv("oof_predictions.csv", index=False)
     print("Wrote oof_predictions.csv")
 
-    print("\n=== Summary ===")
+    print("\n=== CV Summary ===")
     print(f"MAE  mean={float(np.mean(maes)):.4f}  std={float(np.std(maes)):.4f}")
     print(f"RMSE mean={float(np.mean(rmses)):.4f}  std={float(np.std(rmses)):.4f}")
     print(f"R2   mean={float(np.mean(r2s)):.4f}  std={float(np.std(r2s)):.4f}")
-    print(f"MAPE mean={float(np.mean(mapes)):.2f}%  std={float(np.std(mapes)):.2f}%")
 
     # ----------------------------
-    # 8) Combined learning curve plot (all folds in ONE figure)
-    # ----------------------------
-    max_len = max(len(v) for v in all_valid_rmse)
-
-    def pad_to(arr, n):
-        out = np.full(n, np.nan, dtype=float)
-        out[: len(arr)] = arr
-        return out
-
-    train_mat = np.vstack([pad_to(v, max_len) for v in all_train_rmse])
-    valid_mat = np.vstack([pad_to(v, max_len) for v in all_valid_rmse])
-
-    mean_train = np.nanmean(train_mat, axis=0)
-    mean_valid = np.nanmean(valid_mat, axis=0)
-
-    iters = np.arange(1, max_len + 1)
-
-    plt.figure(figsize=(10, 6))
-
-    # overlay each fold's validation curve
-    for i, v in enumerate(all_valid_rmse, start=1):
-        plt.plot(np.arange(1, len(v) + 1), v, alpha=0.35, label=f"valid fold {i}")
-
-    # mean curves (bold)
-    plt.plot(iters, mean_train, linewidth=2.5, label="train mean")
-    plt.plot(iters, mean_valid, linewidth=2.5, label="valid mean")
-
-    plt.xlabel("Boosting round (tree)")
-    plt.ylabel("RMSE")
-    plt.title("LightGBM learning curves (all folds)")
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig("lgbm_learning_curves_all_folds.png")
-    plt.close()
-
-    print("Saved combined plot: lgbm_learning_curves_all_folds.png")
-
-    # ----------------------------
-    # 8b) OOF plots: actual vs predicted
-    # ----------------------------
-    # (A) time-series across ALL stores (can be noisy)
-    oof_time = oof.sort_values("date").reset_index(drop=True)
-    plt.figure(figsize=(12, 6))
-    plt.plot(oof_time["date"], oof_time["y_true"], label="Actual", alpha=0.8)
-    plt.plot(oof_time["date"], oof_time["y_pred"], label="Predicted", alpha=0.8)
-    plt.xlabel("Date")
-    plt.ylabel("Sales")
-    plt.title("Out-of-fold: Actual vs Predicted (validation only)")
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig("oof_actual_vs_pred_time.png")
-    plt.close()
-    print("Saved plot: oof_actual_vs_pred_time.png")
-
-    # (B) one-store time-series (cleaner)
-    store_id = oof["store"].iloc[0]
-    one = oof[oof["store"] == store_id].sort_values("date")
-    plt.figure(figsize=(12, 6))
-    plt.plot(one["date"], one["y_true"], label="Actual")
-    plt.plot(one["date"], one["y_pred"], label="Predicted")
-    plt.title(f"OOF Actual vs Predicted — Store {store_id}")
-    plt.xlabel("Date")
-    plt.ylabel("Sales")
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig("oof_actual_vs_pred_time_store.png")
-    plt.close()
-    print("Saved plot: oof_actual_vs_pred_time_store.png")
-
-    # (C) scatter plot predicted vs actual
-    plt.figure(figsize=(7, 7))
-    plt.scatter(oof["y_true"], oof["y_pred"], alpha=0.25)
-    mn = float(min(oof["y_true"].min(), oof["y_pred"].min()))
-    mx = float(max(oof["y_true"].max(), oof["y_pred"].max()))
-    plt.plot([mn, mx], [mn, mx])
-    plt.xlabel("Actual sales")
-    plt.ylabel("Predicted sales")
-    plt.title("Out-of-fold: Predicted vs Actual")
-    plt.tight_layout()
-    plt.savefig("oof_actual_vs_pred_scatter.png")
-    plt.close()
-    print("Saved plot: oof_actual_vs_pred_scatter.png")
-
-    # ----------------------------
-    # 9) Train on full train and predict test
+    # 8) Train on full train and predict test
     # ----------------------------
     X_all_p = preprocess.fit_transform(X_ord, y_ord)
     X_test_p = preprocess.transform(X_test)
@@ -335,13 +258,119 @@ def main():
     final_model.fit(X_all_p, y_ord)
 
     test_pred = final_model.predict(X_test_p)
-    test_pred = np.maximum(0, test_pred)
 
-    out = test.copy()
-    out["sales"] = test_pred
-    out[["date", "store", "sales"]].to_csv("predictions_lgbm.csv", index=False)
-    print("\nWrote predictions_lgbm.csv")
+    # Write predictions in truth.csv format: row_id,sales
+    if test_row_id is None:
+        raise ValueError("test.csv does not contain row_id, cannot score against truth.csv.")
 
+    rid = pd.to_numeric(test_row_id, errors="coerce").astype("Int64")
+    if rid.isna().any():
+        raise ValueError(f"row_id contains {int(rid.isna().sum())} missing values even after processing.")
+
+    pred_out = pd.DataFrame({
+        "row_id": rid.values,
+        "sales": test_pred.astype(float),
+    }).sort_values("row_id")
+
+    pred_out.to_csv("predictions_lgbm_test.csv", index=False)
+    print("\nWrote predictions_lgbm_test.csv (row_id, sales)")
+
+    # ----------------------------
+    # 9) Test-set evaluation using truth.csv
+    # ----------------------------
+    truth = pd.read_csv("truth.csv")
+    merged = truth.merge(pred_out, on="row_id", how="inner", suffixes=("_true", "_pred"))
+
+    if len(merged) != len(truth):
+        print(f"Warning: matched {len(merged)} / {len(truth)} rows. Check row_id handling.")
+
+    y_true_test = merged["sales_true"].astype(float)
+    y_pred_test = merged["sales_pred"].astype(float)
+
+    print("\n=== Test Set Evaluation (truth.csv) ===")
+    print(f"MAE  = {mean_absolute_error(y_true_test, y_pred_test):.4f}")
+    print(f"RMSE = {rmse(y_true_test, y_pred_test):.4f}")
+    print(f"R2   = {r2_score(y_true_test, y_pred_test):.4f}")
+
+
+    # ----------------------------
+    # 10) Visualize TEST performance (truth.csv)
+    # ----------------------------
+    # Load raw test to get date/store for grouping
+    test_raw = pd.read_csv("test.csv")
+    test_raw["date"] = pd.to_datetime(test_raw["date"])
+
+    # pred_out already exists in your script (row_id, sales)
+    # If not, load it:
+    # pred_out = pd.read_csv("predictions_lgbm_test.csv")
+
+    truth = pd.read_csv("truth.csv")
+
+    # Merge: row_id -> truth + preds + test metadata
+    m = truth.merge(pred_out, on="row_id", how="inner", suffixes=("_true", "_pred"))
+    m = m.merge(test_raw[["row_id", "date", "store"]], on="row_id", how="left")
+
+    m = m.rename(columns={"sales_true": "y_true", "sales_pred": "y_pred"})
+    m["residual"] = m["y_pred"] - m["y_true"]
+    m["abs_error"] = (m["residual"]).abs()
+
+    m.to_csv("test_predictions_with_truth.csv", index=False)
+    print("Wrote test_predictions_with_truth.csv")
+
+    # (A) Scatter: predicted vs true
+    plt.figure(figsize=(7, 7))
+    plt.scatter(m["y_true"], m["y_pred"], alpha=0.25)
+    mn = float(min(m["y_true"].min(), m["y_pred"].min()))
+    mx = float(max(m["y_true"].max(), m["y_pred"].max()))
+    plt.plot([mn, mx], [mn, mx])
+    plt.xlabel("True (truth.csv)")
+    plt.ylabel("Predicted")
+    plt.title("Test set: Predicted vs True")
+    plt.tight_layout()
+    plt.savefig("test_scatter_pred_vs_true.png")
+    plt.close()
+    print("Saved plot: test_scatter_pred_vs_true.png")
+
+    # (B) Residuals histogram
+    plt.figure(figsize=(10, 5))
+    plt.hist(m["residual"], bins=50)
+    plt.xlabel("Residual (pred - true)")
+    plt.ylabel("Count")
+    plt.title("Test set: Residual distribution")
+    plt.tight_layout()
+    plt.savefig("test_residual_hist.png")
+    plt.close()
+    print("Saved plot: test_residual_hist.png")
+
+    # (C) Residuals vs true (heteroscedasticity / extremes)
+    plt.figure(figsize=(7, 5))
+    plt.scatter(m["y_true"], m["residual"], alpha=0.25)
+    plt.axhline(0)
+    plt.xlabel("True (truth.csv)")
+    plt.ylabel("Residual (pred - true)")
+    plt.title("Test set: Residuals vs True")
+    plt.tight_layout()
+    plt.savefig("test_residuals_vs_true.png")
+    plt.close()
+    print("Saved plot: test_residuals_vs_true.png")
+
+    # (D) Error by store (mean absolute error)
+    store_mae = (
+        m.groupby("store", as_index=False)["abs_error"]
+        .mean()
+        .sort_values("abs_error", ascending=False)
+    )
+
+    plt.figure(figsize=(10, 5))
+    plt.bar(store_mae["store"], store_mae["abs_error"])
+    plt.xticks(rotation=45, ha="right")
+    plt.xlabel("Store")
+    plt.ylabel("Mean Absolute Error")
+    plt.title("Test set: MAE by store")
+    plt.tight_layout()
+    plt.savefig("test_mae_by_store.png")
+    plt.close()
+    print("Saved plot: test_mae_by_store.png")
 
 if __name__ == "__main__":
     main()
